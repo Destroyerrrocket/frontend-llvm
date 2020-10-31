@@ -26,7 +26,7 @@ public:
 		inline ResultToken(std::unique_ptr<Report::Report> &&report) : report(std::move(report)) {}
 		inline ResultToken(std::unique_ptr<Token> &&token, std::unique_ptr<Report::Report> &&report) :
 			token(std::move(token)), report(std::move(report)) {}
-
+		inline bool hasData() const {return token || report;}
 		std::unique_ptr<Token> token;
 		std::unique_ptr<Report::Report> report;
 	};

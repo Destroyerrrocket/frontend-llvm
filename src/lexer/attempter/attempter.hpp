@@ -7,26 +7,23 @@ namespace Lex
 class Attempter
 {
 public:
-	Attempter(LexerState &state) : state(state) {}
+	Attempter(LexerState &state) : lexerState(state) {}
+	virtual ~Attempter() = default;
+	template<is_token T = Token, class ... Args>
+	static std::unique_ptr<Token> makeTokenPtr(auto ... args)
+	{
+		auto *tokenSpecialized = new T(args ...);
+		auto *tokenGeneric = dynamic_cast<Token*>(tokenSpecialized);
+		if (!tokenGeneric) {
+			std::cout << "FATAL ERROR: Generic token broken" << std::endl;
+			abort();
+		}
+		return std::unique_ptr<Token>(tokenGeneric);
+	}
 
 	virtual Lexer::ResultToken attempt() const = 0;
 protected:
-	LexerState &state;
+	LexerState &lexerState;
 };
-
-static std::vector<Attempter*> &getAttempters()
-{
-	static std::vector<Attempter*> attempters;
-	return attempters;
-}
-
-struct RegisterAttempter
-{
-	RegisterAttempter(Attempter* a) {getAttempters().push_back(a);}
-};
-#define REGISTER_ATTEMPER2(attempter, line) \
-	attempter COMB(at, line); \
-	static RegisterAttempter COMB(reg, line) (attempter);
-#define REGISTER_ATTEMPER(attempter) REGISTER_ATTEMPER2(attempter, __LINE__)
 
 }

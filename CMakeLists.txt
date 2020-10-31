@@ -33,13 +33,19 @@ add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 add_executable(frontend
+		src/lexer/attempter/attemptsymbol.cpp
+		src/lexer/attempter/attemptidentifier.hpp
+		src/lexer/attempter/attemptdigitliteral.hpp
+		src/lexer/attempter/attemptidentifier.cpp
+		src/lexer/attempter/attempter.hpp
+		src/lexer/attempter/attemptdigitliteral.cpp
+		src/lexer/attempter/attemptsymbol.hpp
 		src/lexer/tokens/token.hpp
 		src/lexer/tokens/tokenkind.hpp
 		src/lexer/tokens/tokenliteral.hpp
 		src/lexer/tokens/tokenidentifier.hpp
 		src/lexer/lexer.hpp
 		src/lexer/lexerstate.hpp
-		src/lexer/attempter.hpp
 		src/lexer/lexer.cpp
 		src/lexer/struct.hpp
 		src/lexer/lexerstate.cpp
