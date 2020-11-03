@@ -1,6 +1,8 @@
 #pragma once
 
 #include "type.hpp"
+#include "variable.hpp"
+
 #include <string>
 #include <memory>
 #include <utility>
@@ -21,13 +23,16 @@ public:
 
 class FunctionPrototype : public Expr
 {
-	std::unique_ptr<Type> returnVal;
+public:
+using Args = std::vector<std::unique_ptr<Argument>>;
+private:
+	std::unique_ptr<Type> returnType;
 	std::string identifier;
-	std::vector<std::unique_ptr<Type>> args;
+	Args args;
 
 public:
-	FunctionPrototype(std::unique_ptr<Type> &&returnVal, std::string identifier, std::vector<std::unique_ptr<Type>> &&args)
-		: returnVal(std::move(returnVal)), identifier(std::move(identifier)), args(std::move(args)) {}
+	FunctionPrototype(std::unique_ptr<Type> &&returnType, std::string identifier, Args &&args)
+		: returnType(std::move(returnType)), identifier(std::move(identifier)), args(std::move(args)) {}
 
 	const std::string &getName() const { return identifier; }
 };

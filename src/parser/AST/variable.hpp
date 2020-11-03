@@ -7,12 +7,16 @@
 namespace AST
 {
 
-class VariableExpr : public Expr
+class Variable : public Expr
 {
 	std::string name;
 	std::unique_ptr<Type> type;
 public:
-	VariableExpr(std::unique_ptr<Type> type, std::string name) : type(std::move(type)), name(std::move(name)) {}
+	Variable(std::unique_ptr<Type> type, std::string name) : type(std::move(type)), name(std::move(name)) {}
 };
+
+struct ExternalVariable : public Variable {using Variable::Variable;};
+struct InternalVariable : public Variable {using Variable::Variable;};
+struct Argument : public Variable {using Variable::Variable;};
 
 }

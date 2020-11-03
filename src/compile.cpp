@@ -4,7 +4,7 @@
 #include "lexer/tokens/tokenkind.hpp"
 #include "lexer/tokens/tokenliteral.hpp"
 #include "parser/parser.hpp"
-
+#include "parser/AST/expr.hpp"
 
 #include <iostream>
 #include <fstream>
