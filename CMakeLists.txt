@@ -50,9 +50,16 @@ add_executable(frontend
 		src/lexer/struct.hpp
 		src/lexer/lexerstate.cpp
 		src/main.cpp
-		src/Parser/parser.hpp
-		src/Parser/parser.cpp
 		src/compile.hpp
+		src/parser/parser.hpp
+		src/parser/parser.cpp
+		src/parser/AST/binaryexpr.hpp
+		src/parser/AST/expr.hpp
+		src/parser/AST/variable.hpp
+		src/parser/AST/type.hpp
+		src/parser/AST/function.hpp
+		src/parser/AST/digitliteral.hpp
+		src/parser/binop.hpp
 		src/compile.cpp
 		src/report/report.hpp
 		src/report/report.cpp

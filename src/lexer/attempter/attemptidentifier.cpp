@@ -12,7 +12,7 @@ Lexer::ResultToken AttempterIdentifier::attempt() const
 {
 	auto &lastChar = this->lexerState.currentChar;
 	auto readByte = [&]() {return this->lexerState.readByte();};
-	if (isalpha(lastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+	if (isalpha(lastChar) || lastChar == '_') { // identifier: [_a-zA-Z][a-zA-Z0-9]*
 		std::string identifier(1,lastChar);
 		while (isalnum((lastChar = readByte())))
 			identifier += lastChar;
