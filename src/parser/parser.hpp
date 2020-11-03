@@ -17,8 +17,9 @@ struct LexerBuffer
 {
 	friend class Parser;
 private:
+	LexerBuffer(Lex::Lexer &lexer) : lexer(lexer) {};
 	std::list<Lex::Lexer::ResultToken> tokens;
-	Lex::Lexer lexer;
+	Lex::Lexer &lexer;
 	auto &currentToken() const {return tokens.back();}
 	void getNextToken();
 };
@@ -26,7 +27,7 @@ private:
 class Parser
 {
 public:
-	Parser(std::istream &file, const char *name);
+	Parser(Lex::Lexer &lexer);
 	Parser() = delete;
 
 	Parser(Parser&) = delete;
@@ -41,6 +42,7 @@ private:
 	std::unique_ptr<AST::Expr> binOpRHS(Priority priorityPrecedent, std::unique_ptr<AST::Expr> &&);
 	std::unique_ptr<AST::Expr> functionPrototype();
 	std::unique_ptr<AST::Expr> functionDefinition();
+	std::unique_ptr<AST::Expr> global();
 
 	LexerBuffer lexerBuff;
 	inline auto &currentToken() const {return lexerBuff.currentToken();}
