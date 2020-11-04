@@ -16,6 +16,7 @@ class BinaryExpr : public Expr
 public:
 	explicit BinaryExpr(Parser::BinaryOp op, std::unique_ptr<Expr> LHS, std::unique_ptr<Expr> RHS) :
 		op(op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+	std::string print() const override {return "(" + LHS->print() + " " + std::to_string(int(op)) + " " + RHS->print() + ")";}
 };
 
 }

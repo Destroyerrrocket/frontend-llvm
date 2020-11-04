@@ -8,6 +8,14 @@
 namespace Parser
 {
 
+template<class T, class ... Args> requires std::is_base_of_v<AST::Expr, T>
+std::unique_ptr<T> makeAST(Args&& ... args)
+{
+	auto ast = std::make_unique<T>(std::forward<Args>(args) ...);
+	std::cout << ast->print() << std::endl;
+	return std::move(ast);
+}
+
 Parser::Parser(Lex::Lexer &lexer) : lexerBuff(lexer) {}
 
 void LexerBuffer::getNextToken()
@@ -20,6 +28,8 @@ void LexerBuffer::getNextToken()
 	}
 	if (!result.token)
 		return getNextToken();
+
+	std::cout << "On token: " << Lex::tokenToStr.at(result.token->kind) << std::endl;
 	tokens.push_back(std::move(result));
 }
 
@@ -28,7 +38,7 @@ std::vector<std::unique_ptr<AST::Expr>> Parser::createAST()
 	std::vector<std::unique_ptr<AST::Expr>> data;
 	if (lexerBuff.tokens.empty())
 		lexerBuff.getNextToken();
-	;
+
 	while (true) {
 		switch (currentToken().token->kind) {
 		case Lex::TokenKind::Eof:
@@ -42,36 +52,39 @@ std::vector<std::unique_ptr<AST::Expr>> Parser::createAST()
 	}
 }
 
-std::optional<AST::Type::Kind> Parser::getType() const {
+std::optional<AST::Type::Kind> Parser::getType() const
+{
 	switch (currentToken().token->kind) {
-		case decltype(currentToken().token->kind)::Kw_int: return AST::Type::Kind::k_int;
-		case decltype(currentToken().token->kind)::Kw_float: return AST::Type::Kind::k_float;
-		default: return std::nullopt;
+	case decltype(currentToken().token->kind)::Kw_int: return AST::Type::Kind::k_int;
+	case decltype(currentToken().token->kind)::Kw_float: return AST::Type::Kind::k_float;
+	default: return std::nullopt;
 	}
 }
 
-bool Parser::isType() const {
+bool Parser::isType() const
+{
 	return getType().has_value();
 }
 
-std::unique_ptr<AST::Type> Parser::typeParse() {
+std::unique_ptr<AST::Type> Parser::typeParse()
+{
 	auto type = getType();
 	if (!type.has_value())
 		throw std::exception();
 	getNextToken();
-	return std::make_unique<AST::Type>(type.value());
+	return makeAST<AST::Type>(type.value());
 }
 
-std::unique_ptr<AST::Expr> Parser::global() {
+std::unique_ptr<AST::Expr> Parser::global()
+{
 	std::unique_ptr<AST::Type> kind = typeParse();
 
-	std::cout <<  Lex::tokenToStr.at(currentToken().token->kind) << std::endl;
 	if (currentToken().token->kind != Lex::TokenKind::Identifier)
 		throw std::exception();
 
-
 	auto identifier = dynamic_cast<Lex::TokenIdentifier&>(*currentToken().token).identifier;
 	getNextToken();
+
 	switch(currentToken().token->kind) {
 	case Lex::TokenKind::LParen: {
 		auto prototype = functionPrototype(std::move(kind), std::move(identifier));
@@ -79,7 +92,7 @@ std::unique_ptr<AST::Expr> Parser::global() {
 			return functionDefinition(std::move(prototype));
 		if (currentToken().token->kind == Lex::TokenKind::Semi)
 			return std::unique_ptr<AST::Expr>(prototype.release());
-		}
+	}
 	case Lex::TokenKind::Semi: // external variable, abort for now.
 	case Lex::TokenKind::Equal:
 	default:;
@@ -96,21 +109,22 @@ std::unique_ptr<AST::FunctionPrototype> Parser::functionPrototype(std::unique_pt
 		std::string name;
 		if (currentToken().token->kind == Lex::TokenKind::Identifier) {
 			name = dynamic_cast<Lex::TokenIdentifier&>(*currentToken().token).identifier;
-			args.push_back(std::make_unique<AST::Argument>(std::move(type), std::move(name)));
+			args.push_back(makeAST<AST::Argument>(std::move(type), std::move(name)));
 			getNextToken();
 		}
 	}
 	getNextToken(); // )
-	return std::make_unique<AST::FunctionPrototype>(std::move(type), std::move(name), std::move(args));
+	return makeAST<AST::FunctionPrototype>(std::move(type), std::move(name), std::move(args));
 }
 
-std::unique_ptr<AST::FunctionDefinition> Parser::functionDefinition(std::unique_ptr<AST::FunctionPrototype> &&prototype) {
+std::unique_ptr<AST::FunctionDefinition> Parser::functionDefinition(std::unique_ptr<AST::FunctionPrototype> &&prototype)
+{
 	getNextToken(); // {
 	std::vector<std::unique_ptr<AST::Expr>> body;
 	while (currentToken().token->kind != Lex::TokenKind::RBrace) {
 		getNextToken();
 	}
-	return std::make_unique<AST::FunctionDefinition>(std::move(prototype), std::move(body));
+	return makeAST<AST::FunctionDefinition>(std::move(prototype), std::move(body));
 }
 
 

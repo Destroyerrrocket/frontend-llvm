@@ -33,6 +33,7 @@ class Literal : public LiteralKind
 	T literal;
 public:
 	Literal(T data) : literal(data), LiteralKind(LiteralKindFromType_v<T>()) {}
+	std::string print() const override {return std::to_string(literal);}
 };
 
 class IntLiteral : public Literal<int32_t>

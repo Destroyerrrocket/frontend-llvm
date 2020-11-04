@@ -17,6 +17,17 @@ public:
 	};
 	Type(Kind kind) : kind(kind) {}
 	Kind kind;
+
+	std::string print() const override {return kindToString(kind);}
+private:
+	static std::string kindToString(Kind kind)
+	{
+		switch (kind) {
+		case Kind::k_Custom: return "CustomType";
+		case Kind::k_int: return "int";
+		case Kind::k_float: return "float";
+		}
+	}
 };
 
 }

@@ -13,6 +13,7 @@ class Variable : public Expr
 	std::unique_ptr<Type> type;
 public:
 	Variable(std::unique_ptr<Type> type, std::string name) : type(std::move(type)), name(std::move(name)) {}
+	std::string print() const override {return type->print() + " " + name;}
 };
 
 struct ExternalVariable : public Variable {using Variable::Variable;};
