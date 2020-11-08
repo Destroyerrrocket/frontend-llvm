@@ -31,6 +31,7 @@ public:
 		std::unique_ptr<Report::Report> report;
 	};
 	ResultToken getToken();
+	Report::SourceLocation getSourceLocation();
 private:
 	struct D;
 	std::unique_ptr<D> d;

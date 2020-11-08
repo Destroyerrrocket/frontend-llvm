@@ -1,11 +1,15 @@
 #pragma once
 
+#include "sourcelocation.hpp"
+#include "macro.h"
+
 #include <array>
 #include <ios>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "macro.h"
+
+
 #define PAIR(X) std::pair{Severity::X, STR(X)}
 
 namespace Report
@@ -35,11 +39,7 @@ struct Report
 	Report(Severity s) : severity(s) {}
 	virtual ~Report() = default;
 	Severity severity;
-	std::string filePath;
-	unsigned row;
-	unsigned column;
-	unsigned size;
-	std::string line;
+	SourceLocation location;
 	std::string message;
 	virtual std::string toString() const = 0;
 
@@ -53,12 +53,12 @@ struct GenericReport : public Report
 	std::string toString() const override
 	{
 		std::stringstream strstream;
-		strstream << filePath << ':' << row << ':' << column << ": ";
+		strstream << location.filePath << ':' << location.row << ':' << location.column << ": ";
 		strstream << getColor() << severityString(S) << "\033[0m: ";
 		strstream << message << std::endl;
-		strstream << line << std::endl;
-		std::streamsize origWidth = strstream.width(column+size);
-		strstream << std::right << '^' << std::string(size-1, '~');
+		strstream << location.line << std::endl;
+		std::streamsize origWidth = strstream.width(location.column+location.size);
+		strstream << std::right << '^' << std::string(location.size-1, '~');
 		strstream.width(origWidth);
 		return strstream.str();
 	}

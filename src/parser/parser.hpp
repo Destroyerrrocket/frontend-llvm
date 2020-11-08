@@ -4,6 +4,7 @@
 #include "lexer/lexer.hpp"
 #include "lexer/tokens/token.hpp"
 #include "parser/AST/type.hpp"
+#include "report/report.hpp"
 
 #include <memory>
 #include <vector>
@@ -28,7 +29,7 @@ private:
 	std::list<Lex::Lexer::ResultToken> tokens;
 	Lex::Lexer &lexer;
 	auto &currentToken() const {return tokens.back();}
-	void getNextToken();
+	std::unique_ptr<Report::Report> getNextToken();
 };
 
 class Parser
@@ -40,7 +41,10 @@ public:
 	Parser(Parser&) = delete;
 	Parser& operator=(Parser&) = delete;
 
-	std::vector<std::unique_ptr<AST::Expr>> createAST();
+	using ASTResult = std::pair<std::vector<std::unique_ptr<AST::Expr>>,
+		std::vector<std::unique_ptr<Report::Report>>>;
+
+	ASTResult createAST();
 private:
 	std::optional<AST::Type::Kind> getType() const;
 	bool isType() const;
@@ -56,7 +60,7 @@ private:
 
 	LexerBuffer lexerBuff;
 	inline auto &currentToken() const {return lexerBuff.currentToken();}
-	inline void getNextToken() {return lexerBuff.getNextToken();}
+	inline auto getNextToken() {return lexerBuff.getNextToken();}
 };
 
 }

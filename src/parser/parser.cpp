@@ -18,36 +18,40 @@ std::unique_ptr<T> makeAST(Args&& ... args)
 
 Parser::Parser(Lex::Lexer &lexer) : lexerBuff(lexer) {}
 
-void LexerBuffer::getNextToken()
+std::unique_ptr<Report::Report> LexerBuffer::getNextToken()
 {
 	auto &&result = lexer.getToken();
-	if (result.report) {
-		std::cerr << result.report->toString() << std::endl;
-		if (result.report->severity == Report::Severity::Error)
-			throw std::exception();
-	}
-	if (!result.token)
-		return getNextToken();
-
-	std::cout << "On token: " << Lex::tokenToStr.at(result.token->kind) << std::endl;
+	return std::move(result.report);
+	if (result.token)
+		std::cout << "On token: " << Lex::tokenToStr.at(result.token->kind) << std::endl;
 	tokens.push_back(std::move(result));
+	return nullptr;
 }
 
-std::vector<std::unique_ptr<AST::Expr>> Parser::createAST()
+Parser::ASTResult Parser::createAST()
 {
 	std::vector<std::unique_ptr<AST::Expr>> data;
+	std::vector<std::unique_ptr<Report::Report>> reports;
 	if (lexerBuff.tokens.empty())
-		lexerBuff.getNextToken();
+		getNextToken();
 
 	while (true) {
 		switch (currentToken().token->kind) {
 		case Lex::TokenKind::Eof:
-			return data;
+			return {data,{}};
 		case Lex::TokenKind::Semi: // ignore top-level semicolons.
 			getNextToken();
 			break;
 		default:
-			data.push_back(global());
+			if (auto g = global(); g)
+				data.push_back(std::move(g));
+			else {
+				auto warn = std::make_unique<Report::Warning>();
+				warn->location = lexerBuff.lexer.getSourceLocation();
+				warn->message = "Unexpected value on AST generation";
+				return {data, {std::move(warn)}};
+			}
+			break;
 		}
 	}
 }
@@ -69,18 +73,20 @@ bool Parser::isType() const
 std::unique_ptr<AST::Type> Parser::typeParse()
 {
 	auto type = getType();
-	if (!type.has_value())
-		throw std::exception();
-	getNextToken();
+	if (!type.has_value()) {
+		return nullptr;
+	}
+	if (getNextToken()) return nullptr;
 	return makeAST<AST::Type>(type.value());
 }
 
 std::unique_ptr<AST::Expr> Parser::global()
 {
 	std::unique_ptr<AST::Type> kind = typeParse();
-
-	if (currentToken().token->kind != Lex::TokenKind::Identifier)
-		throw std::exception();
+	if (!kind) return nullptr;
+	if (currentToken().token->kind != Lex::TokenKind::Identifier) {
+		return nullptr;
+	}
 
 	auto identifier = dynamic_cast<Lex::TokenIdentifier&>(*currentToken().token).identifier;
 	getNextToken();
@@ -95,9 +101,9 @@ std::unique_ptr<AST::Expr> Parser::global()
 	}
 	case Lex::TokenKind::Semi: // external variable, abort for now.
 	case Lex::TokenKind::Equal:
-	default:;
+	default: return nullptr;
 	}
-	throw std::exception();
+	return nullptr;
 }
 
 std::unique_ptr<AST::FunctionPrototype> Parser::functionPrototype(std::unique_ptr<AST::Type> &&type, std::string &&name)

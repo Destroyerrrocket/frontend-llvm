@@ -35,5 +35,6 @@ Compile::~Compile() = default;
 void Compile::compile()
 {
 	auto v = d->parser->createAST();
+	if (v.second);
 }
 }
