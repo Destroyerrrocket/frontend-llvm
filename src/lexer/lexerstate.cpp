@@ -51,22 +51,29 @@ char LexerState::goBackByteOnLine()
 	return *currentByte;
 }
 
-void LexerState::finishedAToken()
+void LexerState::resetOriginToken()
 {
 	previousToken = std::string_view(begginingToken, currentByte);
 	begginingToken = currentByte;
+}
+
+Report::SourceLocation LexerState::createLocationForCurrentToken() const
+{
+	Report::SourceLocation location;
+	location.column = begginingToken - currentLine.begin();
+	location.line = currentLine;
+	location.filePath = name;
+	location.row = row;
+	location.size = std::max(currentByte - begginingToken, 1L);
+	return location;
 }
 
 template<class T>
 std::unique_ptr<Report::Report> LexerState::createReportImpl(std::string &&msg)
 {
 	auto *e = new T();
-	e->column = begginingToken - currentLine.begin();
-	e->line = currentLine;
-	e->filePath = name;
+	e->location = createLocationForCurrentToken();
 	e->message = msg;
-	e->row = row;
-	e->size = std::max(currentByte - begginingToken, 1L);
 	return std::unique_ptr<Report::Report>(e);
 }
 

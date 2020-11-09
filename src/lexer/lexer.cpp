@@ -41,6 +41,11 @@ struct Lexer::D
 Lexer::Lexer(std::istream &file, const char *name) : d(std::make_unique<D>(file,name)) {}
 Lexer::~Lexer() = default;
 
+Report::SourceLocation Lexer::getSourceLocation() const
+{
+	return d->lexerState.createLocationForCurrentToken();
+}
+
 Lexer::ResultToken Lexer::getToken()
 {
 	auto &lexerState = d->lexerState;
@@ -48,6 +53,7 @@ Lexer::ResultToken Lexer::getToken()
 	auto readByte = [&lexerState]() {return lexerState.readByte();};
 	while (isspace(lastChar))
 		lastChar = readByte();
+	//lexerState.resetOriginToken();
 
 	if (lastChar == '/') {
 		if ((lastChar = readByte()) == '/') {

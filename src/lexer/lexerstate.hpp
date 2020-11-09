@@ -28,9 +28,9 @@ public:
 	char goBackByteOnLine();
 	template<class T>
 	std::unique_ptr<Report::Report> createReport(std::string &&msg);
-	void finishedAToken();
+	void resetOriginToken();
 	char currentChar = ' ';
-
+	Report::SourceLocation createLocationForCurrentToken() const;
 private:
 	template<class T>
 	std::unique_ptr<Report::Report> createReportImpl(std::string &&msg);

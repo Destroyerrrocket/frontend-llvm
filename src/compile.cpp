@@ -34,7 +34,19 @@ Compile::~Compile() = default;
 
 void Compile::compile()
 {
-	auto v = d->parser->createAST();
-	if (v.second);
+	auto [v,e] = d->parser->createAST();
+	for (auto &&ast : v) {
+		if (ast)
+			ast->print();
+		else
+			std::cerr << "Found null in ast structure!" << std::endl;
+	}
+	for (auto &&err : e) {
+		if (err) {
+			std::cerr << int(err->severity) << err->message << std::endl;
+			std::cerr << err->toString() << std::endl;
+		} else
+			std::cerr << "Found null in reports!" << std::endl;
+	}
 }
 }

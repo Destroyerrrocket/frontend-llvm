@@ -18,14 +18,12 @@ std::unique_ptr<T> makeAST(Args&& ... args)
 
 Parser::Parser(Lex::Lexer &lexer) : lexerBuff(lexer) {}
 
-std::unique_ptr<Report::Report> LexerBuffer::getNextToken()
+void LexerBuffer::getNextToken()
 {
 	auto &&result = lexer.getToken();
-	return std::move(result.report);
 	if (result.token)
 		std::cout << "On token: " << Lex::tokenToStr.at(result.token->kind) << std::endl;
 	tokens.push_back(std::move(result));
-	return nullptr;
 }
 
 Parser::ASTResult Parser::createAST()
@@ -36,9 +34,18 @@ Parser::ASTResult Parser::createAST()
 		getNextToken();
 
 	while (true) {
+		if (currentToken().report) {
+			reports.push_back(std::move(currentToken().report));
+			if (reports.back()->severity == Report::Severity::Error)
+				return {std::move(data),std::move(reports)};
+		}
+
+		if (!currentToken().token)
+			return {std::move(data),std::move(reports)};
+
 		switch (currentToken().token->kind) {
 		case Lex::TokenKind::Eof:
-			return {data,{}};
+			return {std::move(data),std::move(reports)};
 		case Lex::TokenKind::Semi: // ignore top-level semicolons.
 			getNextToken();
 			break;
@@ -49,7 +56,8 @@ Parser::ASTResult Parser::createAST()
 				auto warn = std::make_unique<Report::Warning>();
 				warn->location = lexerBuff.lexer.getSourceLocation();
 				warn->message = "Unexpected value on AST generation";
-				return {data, {std::move(warn)}};
+				reports.push_back(std::move(warn));
+				return {std::move(data), std::move(reports)};
 			}
 			break;
 		}
@@ -76,7 +84,7 @@ std::unique_ptr<AST::Type> Parser::typeParse()
 	if (!type.has_value()) {
 		return nullptr;
 	}
-	if (getNextToken()) return nullptr;
+	getNextToken();
 	return makeAST<AST::Type>(type.value());
 }
 

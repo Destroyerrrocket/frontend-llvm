@@ -13,9 +13,9 @@
 
 namespace AST
 {
-	class Expr;
-	class FunctionPrototype;
-	class FunctionDefinition;
+class Expr;
+class FunctionPrototype;
+class FunctionDefinition;
 }
 
 namespace Parser
@@ -25,11 +25,12 @@ struct LexerBuffer
 {
 	friend class Parser;
 private:
-	LexerBuffer(Lex::Lexer &lexer) : lexer(lexer) {};
+	LexerBuffer(Lex::Lexer &lexer) : lexer(lexer) {}
 	std::list<Lex::Lexer::ResultToken> tokens;
 	Lex::Lexer &lexer;
 	auto &currentToken() const {return tokens.back();}
-	std::unique_ptr<Report::Report> getNextToken();
+	auto &currentToken() {return tokens.back();}
+	void getNextToken();
 };
 
 class Parser
@@ -60,6 +61,7 @@ private:
 
 	LexerBuffer lexerBuff;
 	inline auto &currentToken() const {return lexerBuff.currentToken();}
+	inline auto &currentToken() {return lexerBuff.currentToken();}
 	inline auto getNextToken() {return lexerBuff.getNextToken();}
 };
 
